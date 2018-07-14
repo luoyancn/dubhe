@@ -2,6 +2,7 @@ package config
 
 import (
 	"sync"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -24,10 +25,15 @@ func init() {
 
 func set_etcd() {
 	viper.Set("etcd.endpoints", []string{"http://localhost:2379"})
+	viper.Set("etcd.connection_timeout", 5)
+	viper.Set("etcd.ttl", 10)
 }
 
 func (this *etcdConf) OverWriteConfig() {
 	over_once.Do(func() {
 		ETCD_ENDPOINTS = viper.GetStringSlice("etcd.endpoints")
+		ETCD_CONNECTION_TIMEOUT = viper.GetDuration(
+			"etcd.connection_timeout") * time.Second
+		ETCD_TTL = viper.GetDuration("etcd.ttl") * time.Second
 	})
 }

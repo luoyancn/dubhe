@@ -2,6 +2,7 @@ package etcdv3
 
 import (
 	"github.com/luoyancn/dubhe/logging"
+	etcdconf "github.com/luoyancn/dubhe/registry/etcdv3/config"
 
 	etcd "github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
@@ -31,8 +32,10 @@ func (this *etcdWatcher) Next() ([]*naming.Update, error) {
 	updates := make([]*naming.Update, 0)
 
 	if len(this.updates) == 0 {
-		resp, err := this.client.Get(
-			context.Background(), this.key, etcd.WithPrefix())
+		get_ctx, get_cancle := context.WithTimeout(
+			context.Background(), etcdconf.ETCD_CONNECTION_TIMEOUT)
+		defer get_cancle()
+		resp, err := this.client.Get(get_ctx, this.key, etcd.WithPrefix())
 		if err == nil {
 			addrs := extractAddrs(resp)
 			if len(addrs) > 0 {
@@ -43,11 +46,16 @@ func (this *etcdWatcher) Next() ([]*naming.Update, error) {
 				this.updates = updates
 				return updates, nil
 			}
+		} else {
+			logging.LOG.Warningf(
+				"Cannot get entity from etcd with key :%s\n", this.key)
 		}
 	}
 
-	rch := this.client.Watch(
-		context.Background(), this.key, etcd.WithPrefix())
+	watch_ctx, watch_cancle := context.WithTimeout(
+		context.Background(), etcdconf.ETCD_CONNECTION_TIMEOUT)
+	defer watch_cancle()
+	rch := this.client.Watch(watch_ctx, this.key, etcd.WithPrefix())
 	for wresp := range rch {
 		for _, ev := range wresp.Events {
 			addr := ev.Kv.String()
