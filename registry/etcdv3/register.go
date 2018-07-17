@@ -8,6 +8,7 @@ import (
 	etcdconf "github.com/luoyancn/dubhe/registry/etcdv3/config"
 
 	etcd "github.com/coreos/etcd/clientv3"
+	"github.com/coreos/etcd/pkg/transport"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -37,6 +38,20 @@ func generate_etcd_config() etcd.Config {
 		logging.LOG.Warningf("https://github.com/coreos/etcd/issues/9877\n")
 		config.DialOptions = append(config.DialOptions, grpc.WithBlock())
 	}
+
+	if etcdconf.ETCD_USE_TLS {
+		logging.LOG.Warningf("Conneciting etcd with tls...\n")
+		tls := transport.TLSInfo{
+			TrustedCAFile: etcdconf.ETCD_CA_CERT,
+			CertFile:      etcdconf.ETCD_CA_FILE,
+			KeyFile:       etcdconf.ETCD_KEY_FILE,
+		}
+		tlsConfig, err := tls.ClientConfig()
+		if nil != err {
+			logging.LOG.Fatalf("Cannot init tls for etcd client:%v\n", err)
+		}
+		config.TLS = tlsConfig
+	}
 	return config
 }
 
@@ -60,14 +75,19 @@ func Register(ndata string) error {
 
 	client, err := etcd.New(config)
 	if err != nil {
-		logging.LOG.Fatalf("Cannot connect to endpoins :%v in %d seconds\n",
-			config.Endpoints, config.DialTimeout/time.Second)
+		logging.LOG.Fatalf("Cannot connect to endpoins %v in %d seconds:%v\n",
+			config.Endpoints, config.DialTimeout/time.Second, err)
 	}
 
 	grant_ctx, grant_cancle := context.WithTimeout(
 		context.Background(), etcdconf.ETCD_CONNECTION_TIMEOUT)
 	defer grant_cancle()
-	resp, err := client.Grant(grant_ctx, int64(etcdconf.ETCD_TTL))
+	// The second param of Grant is second, not Duration
+	// we must convert from duration to second
+	// And the max ttl is 9,000,000,000
+	// See more detail:
+	// https://github.com/coreos/etcd/blob/master/clientv3/options.go#L65
+	resp, err := client.Grant(grant_ctx, int64(etcdconf.ETCD_TTL/time.Second))
 	if err != nil {
 		logging.LOG.Errorf("Failed connect to etcd:%v\n", err)
 		return err

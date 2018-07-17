@@ -9,4 +9,9 @@ var (
 
 	ETCD_SERVICE_NAME = ""
 	ETCD_REGISTER_DIR = "/"
+
+	ETCD_USE_TLS  = false
+	ETCD_CA_CERT  = "ca.pem"
+	ETCD_CA_FILE  = "cert.pem"
+	ETCD_KEY_FILE = "key.pem"
 )

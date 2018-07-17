@@ -23,7 +23,7 @@ func init() {
 }
 
 func set_grpc() {
-	viper.Set("grpc.port", 8080)
+	viper.SetDefault("grpc.port", 8080)
 }
 
 func (this *grpConf) OverWriteConfig() {
