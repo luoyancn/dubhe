@@ -3,7 +3,11 @@ package grpclib
 import (
 	"sync"
 
+	"github.com/luoyancn/dubhe/grpclib/config"
+	"github.com/luoyancn/dubhe/logging"
+
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 type grpcPool struct {
@@ -27,17 +31,25 @@ func InitGrpcClientPool(endpoint string) {
 func (this *grpcPool) dialNew() *grpc.ClientConn {
 	var err error
 	var conn *grpc.ClientConn
-	conn, err = grpc.Dial(this.addr, grpc.WithInsecure())
+	if config.GRPC_USE_TLS {
+		creds, err := credentials.NewClientTLSFromFile(config.GRPC_CA_FILE, "")
+		if nil != err {
+			logging.LOG.Fatalf("Cannot connect to grpc server :%v\n", err)
+		}
+		conn, err = grpc.Dial(this.addr, grpc.WithTransportCredentials(creds))
+	} else {
+		conn, err = grpc.Dial(this.addr, grpc.WithInsecure())
+	}
 	if nil != err {
-		return nil
+		logging.LOG.Fatalf("Cannot connect to grpc server :%v\n", err)
 	}
 	return conn
 }
 
 func Get() *grpc.ClientConn {
-	return pool.Get()
+	return pool.get()
 }
-func (this *grpcPool) Get() *grpc.ClientConn {
+func (this *grpcPool) get() *grpc.ClientConn {
 	select {
 	case conn := <-this.conn:
 		return conn
@@ -47,10 +59,10 @@ func (this *grpcPool) Get() *grpc.ClientConn {
 }
 
 func Put(conn *grpc.ClientConn) error {
-	return pool.Put(conn)
+	return pool.put(conn)
 }
 
-func (this *grpcPool) Put(conn *grpc.ClientConn) error {
+func (this *grpcPool) put(conn *grpc.ClientConn) error {
 	select {
 	case this.conn <- conn:
 		return nil

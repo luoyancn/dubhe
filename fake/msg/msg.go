@@ -9,6 +9,8 @@ import (
 
 const en_fmt = "2006-01-02 15:04:05.999999"
 
+var Messages_serviceDesc = _Messages_serviceDesc
+
 type Service struct {
 	HostName   string
 	ListenPort int

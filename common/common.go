@@ -20,10 +20,10 @@ func Wait(fn ...callback) {
 		syscall.SIGTERM, syscall.SIGQUIT)
 	select {
 	case s := <-sig:
+		logging.LOG.Infof("Terminating Daemon: Recevied signal %v\n", s)
 		for _, f := range fn {
 			f()
 		}
-		logging.LOG.Infof("Terminating Daemon: Recevied signal %v\n", s)
 		os.Exit(-1)
 	}
 }

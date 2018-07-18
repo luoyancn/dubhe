@@ -142,7 +142,7 @@ type MessagesServer interface {
 }
 
 func RegisterMessagesServer(s *grpc.Server, srv MessagesServer) {
-	s.RegisterService(&Messages_serviceDesc, srv)
+	s.RegisterService(&_Messages_serviceDesc, srv)
 }
 
 func _Messages_Call_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -163,7 +163,7 @@ func _Messages_Call_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
-var Messages_serviceDesc = grpc.ServiceDesc{
+var _Messages_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "msg.Messages",
 	HandlerType: (*MessagesServer)(nil),
 	Methods: []grpc.MethodDesc{
