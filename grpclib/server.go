@@ -15,8 +15,15 @@ import (
 var once sync.Once
 var _grpc *grpc.Server
 
-func StartServer(port int, ss interface{}, desc ...grpc.ServiceDesc) {
+type reg func(string) error
+type unreg func()
+
+var un_fn unreg
+
+func StartServer(port int, ss interface{}, fn reg,
+	unfn unreg, desc ...grpc.ServiceDesc) {
 	once.Do(func() {
+		un_fn = unfn
 		logging.LOG.Infof("Start grpc server and listen on %d\n", port)
 		listener, err := net.Listen(
 			"tcp", fmt.Sprintf("%s:%d", "0.0.0.0", port))
@@ -35,6 +42,27 @@ func StartServer(port int, ss interface{}, desc ...grpc.ServiceDesc) {
 			}
 			opts = append(opts, grpc.Creds(creds))
 		}
+
+		reg := 0
+		if config.GRPC_LB_MODE && nil != fn {
+			logging.LOG.Infof("Running grpc cluster with load balance mode\n")
+			logging.LOG.Infof("And the registed address are :%v\n",
+				config.GRPC_REGISTERED_ADDRESS)
+			logging.LOG.Warningf(
+				"Because of lb, delete 127.0.0.1 and 0.0.0.0 from address\n")
+			for _, addr := range config.GRPC_REGISTERED_ADDRESS {
+				if "127.0.0.1" == addr || "0.0.0.0" == addr {
+					continue
+				}
+				fn(fmt.Sprintf("%s:%d", addr, port))
+				reg++
+			}
+			if 0 == reg {
+				logging.LOG.Fatalf(
+					"Please using available address to regist your service\n")
+			}
+		}
+
 		_grpc = grpc.NewServer(opts...)
 		// In general, we registe service into grpc like follows:
 		// messages.RegisterReQRePServer(_grpc,
@@ -57,5 +85,8 @@ func StopServer() {
 	logging.LOG.Infof("Stop the grpc server...\n")
 	if nil != _grpc {
 		_grpc.Stop()
+	}
+	if nil != un_fn && config.GRPC_LB_MODE {
+		un_fn()
 	}
 }

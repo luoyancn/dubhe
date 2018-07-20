@@ -27,6 +27,8 @@ func set_grpc() {
 	viper.SetDefault("grpc.use_tls", false)
 	viper.SetDefault("grpc.ca_file", "")
 	viper.SetDefault("grpc.key_file", "")
+	viper.SetDefault("grpc.lb_mode", false)
+	viper.SetDefault("grpc.registered_address", []string{})
 }
 
 func (this *grpConf) OverWriteConfig() {
@@ -35,5 +37,8 @@ func (this *grpConf) OverWriteConfig() {
 		GRPC_USE_TLS = viper.GetBool("grpc.use_tls")
 		GRPC_CA_FILE = viper.GetString("grpc.ca_file")
 		GRPC_KEY_FILE = viper.GetString("grpc.key_file")
+		GRPC_LB_MODE = viper.GetBool("grpc.lb_mode")
+		GRPC_REGISTERED_ADDRESS = viper.GetStringSlice(
+			"grpc.registered_address")
 	})
 }

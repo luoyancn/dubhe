@@ -28,7 +28,7 @@ func set_etcd() {
 	viper.SetDefault("etcd.connection_timeout", 5)
 	viper.SetDefault("etcd.ttl", 10)
 	viper.SetDefault("etcd.service_name", "etcd")
-	viper.SetDefault("etcd.register_dir", "/grpclib")
+	viper.SetDefault("etcd.register_dir", "grpclib")
 	viper.SetDefault("etcd.use_tls", false)
 	viper.SetDefault("etcd.ca_cert", "")
 	viper.SetDefault("etcd.ca_file", "")

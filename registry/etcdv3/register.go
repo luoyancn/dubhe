@@ -96,6 +96,7 @@ func Register(ndata string) error {
 	put_ctx, put_cancle := context.WithTimeout(
 		context.Background(), etcdconf.ETCD_CONNECTION_TIMEOUT)
 	defer put_cancle()
+	logging.LOG.Debugf("Put key %s value %s into etcd...\n", key, ndata)
 	if _, err = client.Put(put_ctx, key,
 		ndata, etcd.WithLease(resp.ID)); err != nil {
 		logging.LOG.Errorf(
@@ -103,10 +104,11 @@ func Register(ndata string) error {
 		return err
 	}
 
-	keep_ctx, keep_cancle := context.WithTimeout(
-		context.Background(), etcdconf.ETCD_CONNECTION_TIMEOUT)
-	defer keep_cancle()
-	if _, err = client.KeepAlive(keep_ctx, resp.ID); err != nil {
+	// Because we must ensure the key always alive in etcd,
+	// we must use context without timeout. Otherwise, the
+	// grpclient cannot receive any response from grpcserver after
+	// timeout.
+	if _, err = client.KeepAlive(context.TODO(), resp.ID); err != nil {
 		logging.LOG.Errorf(
 			"Failed refresh the key %s exsit in etcd:%v\n", key, err)
 		return err
