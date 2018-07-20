@@ -1,0 +1,13 @@
+syntax = "proto3";
+package mail;
+message Sender{
+    string content = 1;
+}
+
+message Reciver{
+    string reply = 1;
+}
+
+service Mail{
+    rpc Call(Sender) returns (Reciver);
+}

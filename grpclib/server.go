@@ -20,8 +20,19 @@ type unreg func()
 
 var un_fn unreg
 
-func StartServer(port int, ss interface{}, fn reg,
-	unfn unreg, desc ...grpc.ServiceDesc) {
+type serviceDescKV struct {
+	inter interface{}
+	desc  grpc.ServiceDesc
+}
+
+func NewServiceDescKV(inter interface{}, desc grpc.ServiceDesc) *serviceDescKV {
+	return &serviceDescKV{
+		inter: inter,
+		desc:  desc,
+	}
+}
+
+func StartServer(port int, fn reg, unfn unreg, entities ...*serviceDescKV) {
 	once.Do(func() {
 		un_fn = unfn
 		logging.LOG.Infof("Start grpc server and listen on %d\n", port)
@@ -74,8 +85,8 @@ func StartServer(port int, ss interface{}, fn reg,
 		// to xxx_serviceDesc. Remind, the second params is the grpc service
 		// entity.
 		// var xxx_serviceDesc = _xxx_serviceDesc
-		for _, d := range desc {
-			_grpc.RegisterService(&d, ss)
+		for _, entity := range entities {
+			_grpc.RegisterService(&entity.desc, entity.inter)
 		}
 		_grpc.Serve(listener)
 	})
