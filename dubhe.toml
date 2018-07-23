@@ -1,0 +1,66 @@
+[grpc]
+# The port of grpc server listened on. Default is 8080.
+# port = 8080
+
+# Using tls to transmission messages between grpc server/client.
+# Default is false
+# use_tls = false
+
+# The ca pem file for tls.
+# ca_file  = ""
+
+# The key pem file for tls.
+# key_file = ""
+
+# Using load balance mode for grpc. Default is false.
+# lb_mode = false
+
+# The registed addresses into registry.
+# NOTICE: Do not use 127.0.0.1 and 0.0.0.0
+# registered_address = [""]
+
+# Debug mode for grpc server/client. Default is false.
+# debug = false
+
+# The concurrency connection of every grpc server connection. Default is 1024.
+# concurrency = 1024
+
+# The frequency limit of grpc server. Default is max float64.
+# req_max_frequency = -1
+
+# The frequency limit burst of grpc server. Default is 10.
+# req_burst_frequency = 10
+
+# The limit of total grpc server connections. Default is 10240.
+# connection_limit = 10240
+#
+# The timeout of grpc client connect to grpc server. Default is 10 seconds.
+# timeout = 10
+
+[etcd]
+# The endpoints of etcd servers. Default is 127.0.0.1.
+# endpoints = ["http://localhost:2379"]
+
+# The timeout of connect to etcd servers. Default is 5 seconds.
+# connection_timeout = 5
+
+# The ttl of key-value store in etcd. Default is 10 seconds.
+# ttl = 10
+
+# Using tls for connect to etcd cluster. Default is false.
+# use_tls = false
+
+# The root ca pem of etcd cluster used.
+# ca_cert = "ca.pem"
+
+# The ca pem of etcd cluster used.
+# ca_file = "kubernetes.pem"
+
+# The key file of etcd cluster used.
+# key_file = "kubernetes-key.pem"
+
+# The service name registed in etcd. Default is etcd.
+# service_name = "etcd"
+
+# The register dir of service registed in etcd cluster. Default is grpclib.
+# register_dir = "grpclib"

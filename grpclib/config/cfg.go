@@ -1,7 +1,9 @@
 package config
 
 import (
+	"math"
 	"sync"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -29,6 +31,12 @@ func set_grpc() {
 	viper.SetDefault("grpc.key_file", "")
 	viper.SetDefault("grpc.lb_mode", false)
 	viper.SetDefault("grpc.registered_address", []string{})
+	viper.SetDefault("grpc.debug", false)
+	viper.SetDefault("grpc.concurrency", 1024)
+	viper.SetDefault("grpc.req_max_frequency", math.MaxFloat64)
+	viper.SetDefault("grpc.req_burst_frequency", 10)
+	viper.SetDefault("grpc.connection_limit", 10240)
+	viper.SetDefault("grpc.timeout", 10)
 }
 
 func (this *grpConf) OverWriteConfig() {
@@ -40,5 +48,11 @@ func (this *grpConf) OverWriteConfig() {
 		GRPC_LB_MODE = viper.GetBool("grpc.lb_mode")
 		GRPC_REGISTERED_ADDRESS = viper.GetStringSlice(
 			"grpc.registered_address")
+		GRPC_DEBUG = viper.GetBool("grpc.debug")
+		GRPC_CONCURRENCY = viper.GetInt("grpc.concurrency")
+		GRPC_REQ_MAX_FREQUENCY = viper.GetFloat64("grpc.req_max_frequency")
+		GRPC_REQ_BURST_FREQUENCY = viper.GetInt("grpc.req_burst_frequency")
+		GRPC_CONNECTION_LIMIT = viper.GetInt("grpc.connection_limit")
+		GRPC_TIMEOUT = viper.GetDuration("grpc.timeout") * time.Second
 	})
 }

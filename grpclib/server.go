@@ -1,15 +1,23 @@
 package grpclib
 
 import (
+	"context"
 	"fmt"
+	"math"
 	"net"
 	"sync"
+	"time"
 
 	"github.com/luoyancn/dubhe/grpclib/config"
 	"github.com/luoyancn/dubhe/logging"
 
+	"golang.org/x/net/netutil"
+	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/tap"
 )
 
 var once sync.Once
@@ -74,6 +82,17 @@ func StartServer(port int, fn reg, unfn unreg, entities ...*serviceDescKV) {
 			}
 		}
 
+		if config.GRPC_DEBUG {
+			opts = append(opts, withServerDebugInterceptor())
+		}
+
+		opts = append(opts, grpc.MaxConcurrentStreams(
+			uint32(config.GRPC_CONCURRENCY)))
+
+		if config.GRPC_REQ_MAX_FREQUENCY < math.MaxFloat64 {
+			opts = append(opts, grpc.InTapHandle(newTap().handler))
+		}
+
 		_grpc = grpc.NewServer(opts...)
 		// In general, we registe service into grpc like follows:
 		// messages.RegisterReQRePServer(_grpc,
@@ -88,8 +107,41 @@ func StartServer(port int, fn reg, unfn unreg, entities ...*serviceDescKV) {
 		for _, entity := range entities {
 			_grpc.RegisterService(&entity.desc, entity.inter)
 		}
+		if config.GRPC_CONNECTION_LIMIT > 0 {
+			listener = netutil.LimitListener(
+				listener, config.GRPC_CONNECTION_LIMIT)
+		}
 		_grpc.Serve(listener)
 	})
+}
+
+func withServerDebugInterceptor() grpc.ServerOption {
+	return grpc.UnaryInterceptor(debugServerInterceptor)
+}
+
+func debugServerInterceptor(ctx context.Context,
+	req interface{}, info *grpc.UnaryServerInfo,
+	handler grpc.UnaryHandler) (interface{}, error) {
+	start := time.Now()
+	resp, err := handler(ctx, req)
+	logging.LOG.Debugf("Invoke server method=%s duration=%s error=%v",
+		info.FullMethod, time.Since(start), err)
+	return resp, err
+}
+
+// 限制访问频率，默认无限制
+func newTap() *tapp {
+	return &tapp{rate.NewLimiter(rate.Limit(config.GRPC_REQ_MAX_FREQUENCY),
+		config.GRPC_REQ_BURST_FREQUENCY)}
+}
+
+func (t *tapp) handler(ctx context.Context,
+	info *tap.Info) (context.Context, error) {
+	if !t.lim.Allow() {
+		return nil, status.Errorf(
+			codes.ResourceExhausted, "Service is over rate limit")
+	}
+	return ctx, nil
 }
 
 func StopServer() {
