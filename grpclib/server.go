@@ -129,6 +129,10 @@ func debugServerInterceptor(ctx context.Context,
 	return resp, err
 }
 
+type tapp struct {
+	lim *rate.Limiter
+}
+
 // 限制访问频率，默认无限制
 func newTap() *tapp {
 	return &tapp{rate.NewLimiter(rate.Limit(config.GRPC_REQ_MAX_FREQUENCY),
