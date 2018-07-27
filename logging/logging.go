@@ -46,7 +46,8 @@ func GetLogger(logger string, logback int, logpath string, debug bool) {
 			break
 		case 3:
 			file_back_formater := get_file_logger(logpath, logger)
-			gologging.SetBackend(file_back_formater, std_back_formater)
+			gologging.SetBackend(
+				file_back_formater, std_back_formater)
 			break
 		default:
 			gologging.SetBackend(std_back_formater)

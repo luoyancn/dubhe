@@ -31,12 +31,18 @@ func generate_etcd_config() etcd.Config {
 	// https://github.com/coreos/etcd/issues/9829
 	// https://github.com/coreos/etcd/issues/9877
 	if etcdconf.ETCD_CONNECTION_TIMEOUT > 0 {
-		logging.LOG.Warningf("With DialTimeout options, we must use blocking\n")
-		logging.LOG.Warningf("call to Ensure the error would be returned\n")
-		logging.LOG.Warningf("Visit the follow links to get more details:\n")
-		logging.LOG.Warningf("https://github.com/coreos/etcd/issues/9829\n")
-		logging.LOG.Warningf("https://github.com/coreos/etcd/issues/9877\n")
-		config.DialOptions = append(config.DialOptions, grpc.WithBlock())
+		logging.LOG.Warningf(
+			"With DialTimeout options, we must use blocking\n")
+		logging.LOG.Warningf(
+			"call to Ensure the error would be returned\n")
+		logging.LOG.Warningf(
+			"Visit the follow links to get more details:\n")
+		logging.LOG.Warningf(
+			"https://github.com/coreos/etcd/issues/9829\n")
+		logging.LOG.Warningf(
+			"https://github.com/coreos/etcd/issues/9877\n")
+		config.DialOptions = append(
+			config.DialOptions, grpc.WithBlock())
 	}
 
 	if etcdconf.ETCD_USE_TLS {
@@ -100,7 +106,8 @@ func Register(ndata string) error {
 	if _, err = client.Put(put_ctx, key,
 		ndata, etcd.WithLease(resp.ID)); err != nil {
 		logging.LOG.Errorf(
-			"Failed Put the key %s value %sinto etcd:%v\n", key, ndata, err)
+			"Failed Put the key %s value %sinto etcd:%v\n",
+			key, ndata, err)
 		return err
 	}
 
@@ -110,7 +117,8 @@ func Register(ndata string) error {
 	// timeout.
 	if _, err = client.KeepAlive(context.TODO(), resp.ID); err != nil {
 		logging.LOG.Errorf(
-			"Failed refresh the key %s exsit in etcd:%v\n", key, err)
+			"Failed refresh the key %s exsit in etcd:%v\n",
+			key, err)
 		return err
 	}
 	return nil

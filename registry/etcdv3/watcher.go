@@ -35,20 +35,23 @@ func (this *etcdWatcher) Next() ([]*naming.Update, error) {
 		get_ctx, get_cancle := context.WithTimeout(
 			context.Background(), etcdconf.ETCD_CONNECTION_TIMEOUT)
 		defer get_cancle()
-		resp, err := this.client.Get(get_ctx, this.key, etcd.WithPrefix())
+		resp, err := this.client.Get(
+			get_ctx, this.key, etcd.WithPrefix())
 		if err == nil {
 			addrs := extractAddrs(resp)
 			if len(addrs) > 0 {
 				for _, addr := range addrs {
-					updates = append(updates, &naming.Update{
-						Op: naming.Add, Addr: addr})
+					updates = append(updates,
+						&naming.Update{Op: naming.Add,
+							Addr: addr})
 				}
 				this.updates = updates
 				return updates, nil
 			}
 		} else {
 			logging.LOG.Warningf(
-				"Cannot get entity from etcd with key :%s\n", this.key)
+				"Cannot get entity from etcd with key :%s\n",
+				this.key)
 		}
 	}
 

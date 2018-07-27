@@ -33,7 +33,8 @@ type serviceDescKV struct {
 	desc  grpc.ServiceDesc
 }
 
-func NewServiceDescKV(inter interface{}, desc grpc.ServiceDesc) *serviceDescKV {
+func NewServiceDescKV(
+	inter interface{}, desc grpc.ServiceDesc) *serviceDescKV {
 	return &serviceDescKV{
 		inter: inter,
 		desc:  desc,
@@ -48,7 +49,8 @@ func StartServer(port int, fn reg, unfn unreg, entities ...*serviceDescKV) {
 			"tcp", fmt.Sprintf("%s:%d", "0.0.0.0", port))
 		if nil != err {
 			logging.LOG.Panicf(
-				"Cannot start grpc server on port %d:%v\n", port, err)
+				"Cannot start grpc server on port %d:%v\n",
+				port, err)
 		}
 
 		var opts []grpc.ServerOption
@@ -57,18 +59,19 @@ func StartServer(port int, fn reg, unfn unreg, entities ...*serviceDescKV) {
 				config.GRPC_CA_FILE, config.GRPC_KEY_FILE)
 			if nil != err {
 				logging.LOG.Fatalf(
-					"Cannot init creds for grpc server:%v\n", err)
+					"Cannot init creds for server:%v\n", err)
 			}
 			opts = append(opts, grpc.Creds(creds))
 		}
 
 		reg := 0
 		if config.GRPC_LB_MODE && nil != fn {
-			logging.LOG.Infof("Running grpc cluster with load balance mode\n")
+			logging.LOG.Infof(
+				"Running grpc cluster with load balance mode\n")
 			logging.LOG.Infof("And the registed address are :%v\n",
 				config.GRPC_REGISTERED_ADDRESS)
 			logging.LOG.Warningf(
-				"Because of lb, delete 127.0.0.1 and 0.0.0.0 from address\n")
+				"Because of lb, delete 127.0.0.1 and 0.0.0.0 \n")
 			for _, addr := range config.GRPC_REGISTERED_ADDRESS {
 				if "127.0.0.1" == addr || "0.0.0.0" == addr {
 					continue
@@ -78,7 +81,7 @@ func StartServer(port int, fn reg, unfn unreg, entities ...*serviceDescKV) {
 			}
 			if 0 == reg {
 				logging.LOG.Fatalf(
-					"Please using available address to regist your service\n")
+					"Please using available address \n")
 			}
 		}
 
