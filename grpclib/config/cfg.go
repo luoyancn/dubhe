@@ -25,6 +25,7 @@ func init() {
 }
 
 func set_grpc() {
+	viper.SetDefault("grpc.init_addr", "127.0.0.1")
 	viper.SetDefault("grpc.port", 8080)
 	viper.SetDefault("grpc.use_tls", false)
 	viper.SetDefault("grpc.ca_file", "")
@@ -50,9 +51,12 @@ func (this *grpConf) OverWriteConfig() {
 			"grpc.registered_address")
 		GRPC_DEBUG = viper.GetBool("grpc.debug")
 		GRPC_CONCURRENCY = viper.GetInt("grpc.concurrency")
-		GRPC_REQ_MAX_FREQUENCY = viper.GetFloat64("grpc.req_max_frequency")
-		GRPC_REQ_BURST_FREQUENCY = viper.GetInt("grpc.req_burst_frequency")
+		GRPC_REQ_MAX_FREQUENCY = viper.GetFloat64(
+			"grpc.req_max_frequency")
+		GRPC_REQ_BURST_FREQUENCY = viper.GetInt(
+			"grpc.req_burst_frequency")
 		GRPC_CONNECTION_LIMIT = viper.GetInt("grpc.connection_limit")
 		GRPC_TIMEOUT = viper.GetDuration("grpc.timeout") * time.Second
+		GRPC_INIT_ADDR = viper.GetString("grpc.init_addr")
 	})
 }

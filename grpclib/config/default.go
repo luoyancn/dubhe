@@ -3,6 +3,7 @@ package config
 import "time"
 
 var (
+	GRPC_INIT_ADDR           = "127.0.0.1"
 	GRPC_PORT                = 8080
 	GRPC_USE_TLS             = false
 	GRPC_CA_FILE             = ""
