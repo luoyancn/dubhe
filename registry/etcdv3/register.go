@@ -115,12 +115,27 @@ func Register(ndata string) error {
 	// we must use context without timeout. Otherwise, the
 	// grpclient cannot receive any response from grpcserver after
 	// timeout.
-	if _, err = client.KeepAlive(context.TODO(), resp.ID); err != nil {
+	keep, err := client.KeepAlive(context.TODO(), resp.ID)
+	if nil != err {
 		logging.LOG.Errorf(
 			"Failed refresh the key %s exsit in etcd:%v\n",
 			key, err)
 		return err
 	}
+
+	// Eat all keep alive messages
+	// Otherwise, lease keepalive response queue will full,
+	// and etcd would dropping response send
+	// For more detail, visit the follow links:
+	// https://github.com/coreos/etcd/pull/9952
+	// https://github.com/coreos/etcd/issues/8168
+	// https://github.com/coreos/etcd/blob/master/clientv3/concurrency/session.go#L63
+	// https://www.cnxct.com/etcd-lease-keepalive-debug-note/
+
+	go func() {
+		for range keep {
+		}
+	}()
 	return nil
 }
 
