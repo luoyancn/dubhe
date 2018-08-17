@@ -4,11 +4,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/luoyancn/dubhe/logging"
-	etcdconf "github.com/luoyancn/dubhe/registry/etcdv3/config"
-
 	etcd "github.com/coreos/etcd/clientv3"
 	"google.golang.org/grpc/naming"
+
+	"github.com/luoyancn/dubhe/logging"
+	etcdconf "github.com/luoyancn/dubhe/registry/etcdv3/config"
 )
 
 type etcdResolver struct {

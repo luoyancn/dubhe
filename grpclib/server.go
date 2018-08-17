@@ -8,9 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/luoyancn/dubhe/grpclib/config"
-	"github.com/luoyancn/dubhe/logging"
-
 	"golang.org/x/net/netutil"
 	"golang.org/x/time/rate"
 	"google.golang.org/grpc"
@@ -18,12 +15,15 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/tap"
+
+	"github.com/luoyancn/dubhe/grpclib/config"
+	"github.com/luoyancn/dubhe/logging"
 )
 
 var once sync.Once
 var _grpc *grpc.Server
 
-type reg func(string) error
+type reg func(string, bool) error
 type unreg func()
 
 var un_fn unreg
@@ -76,7 +76,8 @@ func StartServer(port int, fn reg, unfn unreg, entities ...*serviceDescKV) {
 				if "127.0.0.1" == addr || "0.0.0.0" == addr {
 					continue
 				}
-				fn(fmt.Sprintf("%s:%d", addr, port))
+				fn(fmt.Sprintf("%s:%d", addr, port),
+					config.GRPC_USE_DEPRECATED_LB)
 				reg++
 			}
 			if 0 == reg {

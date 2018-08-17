@@ -16,4 +16,5 @@ var (
 	GRPC_REQ_BURST_FREQUENCY = 10
 	GRPC_CONNECTION_LIMIT    = 10240
 	GRPC_TIMEOUT             = 10 * time.Second
+	GRPC_USE_DEPRECATED_LB   = false
 )

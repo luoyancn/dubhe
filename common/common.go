@@ -14,6 +14,8 @@ import (
 
 type callback func()
 
+const AUTHORITY = "luoyan"
+
 func Wait(fn ...callback) {
 	sig := make(chan os.Signal)
 	signal.Notify(sig, syscall.SIGHUP, syscall.SIGINT,

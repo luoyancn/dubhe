@@ -5,12 +5,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/luoyancn/dubhe/grpclib/config"
-	"github.com/luoyancn/dubhe/logging"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/naming"
+	"google.golang.org/grpc/resolver"
+
+	"github.com/luoyancn/dubhe/common"
+	"github.com/luoyancn/dubhe/grpclib/config"
+	"github.com/luoyancn/dubhe/logging"
+	"github.com/luoyancn/dubhe/registry/etcdv3"
 )
 
 type grpcPool struct {
@@ -20,14 +23,16 @@ type grpcPool struct {
 
 var gonce sync.Once
 var pool *grpcPool
+var servie_name string
 
 type resolvfunc func() naming.Resolver
 
 var fn resolvfunc
 
-func InitGrpcClientPool(endpoint string, res resolvfunc) {
+func InitGrpcClientPool(endpoint string, srv string, res resolvfunc) {
 	gonce.Do(func() {
 		fn = res
+		servie_name = srv
 		pool = new(grpcPool)
 		pool.addr = endpoint
 		pool.conn = make(chan *grpc.ClientConn, 1024)
@@ -73,9 +78,18 @@ func (this *grpcPool) dialNew() *grpc.ClientConn {
 	defer cancle()
 	if config.GRPC_LB_MODE {
 		logging.LOG.Infof("Using lb mode to visit grpc server...\n")
-		balancer := grpc.RoundRobin(fn())
-		opts = append(opts, grpc.WithBlock(), grpc.WithBalancer(balancer))
-		conn, err = grpc.DialContext(ctx, "", opts...)
+		if config.GRPC_USE_DEPRECATED_LB {
+			logging.LOG.Debugf("grpc.RoundRobin will deprecated, Please use grpc.WithBalancerName instead...\n")
+			balancer := grpc.RoundRobin(fn())
+			opts = append(opts, grpc.WithBlock(), grpc.WithBalancer(balancer))
+			conn, err = grpc.DialContext(ctx, "", opts...)
+		} else {
+			builder := etcdv3.NewBuilder()
+			resolver.Register(builder)
+			opts = append(opts, grpc.WithBlock(), grpc.WithBalancerName("round_robin"))
+			conn, err = grpc.DialContext(
+				ctx, builder.Scheme()+"://"+common.AUTHORITY+"/"+servie_name, opts...)
+		}
 	} else {
 		logging.LOG.Infof("Visit grpc server directly...\n")
 		//conn, err = grpc.Dial(this.addr, opts...)

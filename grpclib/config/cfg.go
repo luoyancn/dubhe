@@ -38,6 +38,7 @@ func set_grpc() {
 	viper.SetDefault("grpc.req_burst_frequency", 10)
 	viper.SetDefault("grpc.connection_limit", 10240)
 	viper.SetDefault("grpc.timeout", 10)
+	viper.SetDefault("grpc.use_deprecated_lb", false)
 }
 
 func (this *grpConf) OverWriteConfig() {
@@ -58,5 +59,6 @@ func (this *grpConf) OverWriteConfig() {
 		GRPC_CONNECTION_LIMIT = viper.GetInt("grpc.connection_limit")
 		GRPC_TIMEOUT = viper.GetDuration("grpc.timeout") * time.Second
 		GRPC_INIT_ADDR = viper.GetString("grpc.init_addr")
+		GRPC_USE_DEPRECATED_LB = viper.GetBool("grpc.use_deprecated_lb")
 	})
 }

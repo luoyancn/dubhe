@@ -4,14 +4,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/luoyancn/dubhe/logging"
-	etcdconf "github.com/luoyancn/dubhe/registry/etcdv3/config"
-
 	etcd "github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/pkg/transport"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+
+	"github.com/luoyancn/dubhe/logging"
+	etcdconf "github.com/luoyancn/dubhe/registry/etcdv3/config"
 )
 
 var deregister = make(chan struct{})
@@ -61,12 +61,16 @@ func generate_etcd_config() etcd.Config {
 	return config
 }
 
-func Register(ndata string) error {
+func Register(ndata string, deprecated bool) error {
 	config := generate_etcd_config()
 	nodeid, _ := uuid.NewV4()
-	key := strings.Join(
-		[]string{etcdconf.ETCD_REGISTER_DIR,
-			etcdconf.ETCD_SERVICE_NAME, nodeid.String()}, "/")
+	key := "/" + schema + "/" + etcdconf.ETCD_SERVICE_NAME + "/" + ndata
+	if deprecated {
+		logging.LOG.Warningf("Register service with deprecated lb mode\n")
+		key = strings.Join(
+			[]string{etcdconf.ETCD_REGISTER_DIR,
+				etcdconf.ETCD_SERVICE_NAME, nodeid.String()}, "/")
+	}
 	logging.LOG.Infof("Register service with key :%s\n", key)
 
 	var client *etcd.Client

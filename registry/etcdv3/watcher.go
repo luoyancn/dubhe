@@ -1,13 +1,13 @@
 package etcdv3
 
 import (
-	"github.com/luoyancn/dubhe/logging"
-	etcdconf "github.com/luoyancn/dubhe/registry/etcdv3/config"
-
 	etcd "github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/naming"
+
+	"github.com/luoyancn/dubhe/logging"
+	etcdconf "github.com/luoyancn/dubhe/registry/etcdv3/config"
 )
 
 type etcdWatcher struct {
