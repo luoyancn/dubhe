@@ -6,6 +6,7 @@ import (
 
 	etcd "github.com/coreos/etcd/clientv3"
 	"github.com/coreos/etcd/mvcc/mvccpb"
+	"google.golang.org/grpc/naming"
 	"google.golang.org/grpc/resolver"
 
 	"github.com/luoyancn/dubhe/logging"
@@ -19,8 +20,9 @@ type etcdbuilder struct {
 	cc resolver.ClientConn
 }
 
-func NewBuilder() resolver.Builder {
-	return &etcdbuilder{}
+func NewResolver() (naming.Resolver, resolver.Builder) {
+
+	return &etcdResolver{}, &etcdbuilder{}
 }
 
 func (r *etcdbuilder) Build(target resolver.Target, cc resolver.ClientConn,

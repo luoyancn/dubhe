@@ -14,10 +14,6 @@ import (
 type etcdResolver struct {
 }
 
-func NewResolver() naming.Resolver {
-	return &etcdResolver{}
-}
-
 func (this *etcdResolver) Resolve(target string) (naming.Watcher, error) {
 	if etcdconf.ETCD_SERVICE_NAME == "" {
 		return nil, errors.New("no service name provided")
