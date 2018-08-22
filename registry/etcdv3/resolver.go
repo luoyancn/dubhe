@@ -12,10 +12,11 @@ import (
 )
 
 type etcdResolver struct {
+	service_name string
 }
 
 func (this *etcdResolver) Resolve(target string) (naming.Watcher, error) {
-	if etcdconf.ETCD_SERVICE_NAME == "" {
+	if this.service_name == "" {
 		return nil, errors.New("no service name provided")
 	}
 
@@ -27,7 +28,7 @@ func (this *etcdResolver) Resolve(target string) (naming.Watcher, error) {
 		return nil, err
 	}
 	key := fmt.Sprintf(
-		"%s/%s", etcdconf.ETCD_REGISTER_DIR, etcdconf.ETCD_SERVICE_NAME)
+		"%s/%s", etcdconf.ETCD_REGISTER_DIR, this.service_name)
 	logging.LOG.Debugf("Watching the key named:%s\n", key)
 	return newEtcdWatcher(key, client), nil
 }

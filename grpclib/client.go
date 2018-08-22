@@ -24,13 +24,13 @@ var gonce sync.Once
 var pool *grpcPool
 var servie_name string
 
-type resolvfunc func() (naming.Resolver, resolver.Builder)
+type resolvfunc func(string) (naming.Resolver, resolver.Builder)
 
-var fn resolvfunc
+var resolv resolvfunc
 
 func InitGrpcClientPool(endpoint string, srv string, res resolvfunc) {
 	gonce.Do(func() {
-		fn = res
+		resolv = res
 		servie_name = srv
 		pool = new(grpcPool)
 		pool.addr = endpoint
@@ -77,7 +77,7 @@ func (this *grpcPool) dialNew() *grpc.ClientConn {
 	defer cancle()
 	if config.GRPC_LB_MODE {
 		logging.LOG.Infof("Using lb mode to visit grpc server...\n")
-		_balancer, _builder := fn()
+		_balancer, _builder := resolv(servie_name)
 		opts = append(opts, grpc.WithBlock())
 		if config.GRPC_USE_DEPRECATED_LB {
 			logging.LOG.Debugf("grpc.RoundRobin will deprecated, Please use grpc.WithBalancerName instead...\n")

@@ -23,28 +23,30 @@ import (
 var once sync.Once
 var _grpc *grpc.Server
 
-type reg func(string, bool) error
-type unreg func()
+type registerfunc func(string, bool, string) error
+type unregisterfunc func()
 
-var un_fn unreg
+var unregist unregisterfunc
 
 type serviceDescKV struct {
-	inter interface{}
-	desc  grpc.ServiceDesc
+	service_server interface{}
+	service_desc   grpc.ServiceDesc
 }
 
-func NewServiceDescKV(
-	inter interface{}, desc grpc.ServiceDesc) *serviceDescKV {
+func NewServiceDescKV(service_server interface{},
+	service_desc grpc.ServiceDesc) *serviceDescKV {
 	return &serviceDescKV{
-		inter: inter,
-		desc:  desc,
+		service_server: service_server,
+		service_desc:   service_desc,
 	}
 }
 
-func StartServer(port int, fn reg, unfn unreg, entities ...*serviceDescKV) {
+func StartServer(port int, register registerfunc, unregister unregisterfunc,
+	service_name string, entities ...*serviceDescKV) {
 	once.Do(func() {
-		un_fn = unfn
+		unregist = unregister
 		logging.LOG.Infof("Start grpc server and listen on %d\n", port)
+		logging.LOG.Infof("%v\n", unregister)
 		listener, err := net.Listen(
 			"tcp", fmt.Sprintf("%s:%d", "0.0.0.0", port))
 		if nil != err {
@@ -62,28 +64,6 @@ func StartServer(port int, fn reg, unfn unreg, entities ...*serviceDescKV) {
 					"Cannot init creds for server:%v\n", err)
 			}
 			opts = append(opts, grpc.Creds(creds))
-		}
-
-		reg := 0
-		if config.GRPC_LB_MODE && nil != fn {
-			logging.LOG.Infof(
-				"Running grpc cluster with load balance mode\n")
-			logging.LOG.Infof("And the registed address are :%v\n",
-				config.GRPC_REGISTERED_ADDRESS)
-			logging.LOG.Warningf(
-				"Because of lb, delete 127.0.0.1 and 0.0.0.0 \n")
-			for _, addr := range config.GRPC_REGISTERED_ADDRESS {
-				if "127.0.0.1" == addr || "0.0.0.0" == addr {
-					continue
-				}
-				fn(fmt.Sprintf("%s:%d", addr, port),
-					config.GRPC_USE_DEPRECATED_LB)
-				reg++
-			}
-			if 0 == reg {
-				logging.LOG.Fatalf(
-					"Please using available address \n")
-			}
 		}
 
 		if config.GRPC_DEBUG {
@@ -108,8 +88,31 @@ func StartServer(port int, fn reg, unfn unreg, entities ...*serviceDescKV) {
 		// to xxx_serviceDesc. Remind, the second params is the grpc service
 		// entity.
 		// var xxx_serviceDesc = _xxx_serviceDesc
+		registed := 0
+		if config.GRPC_LB_MODE && nil != register {
+			logging.LOG.Infof(
+				"Running grpc cluster with load balance mode\n")
+			logging.LOG.Infof("And the registed address are :%v\n",
+				config.GRPC_REGISTERED_ADDRESS)
+			logging.LOG.Warningf(
+				"Because of lb, delete 127.0.0.1 and 0.0.0.0 \n")
+			for _, addr := range config.GRPC_REGISTERED_ADDRESS {
+				if "127.0.0.1" == addr || "0.0.0.0" == addr {
+					continue
+				}
+				register(fmt.Sprintf("%s:%d", addr, port),
+					config.GRPC_USE_DEPRECATED_LB, service_name)
+				registed++
+			}
+			if 0 == registed {
+				logging.LOG.Fatalf(
+					"Please using available address \n")
+			}
+		}
+
 		for _, entity := range entities {
-			_grpc.RegisterService(&entity.desc, entity.inter)
+			_grpc.RegisterService(
+				&entity.service_desc, entity.service_server)
 		}
 		if config.GRPC_CONNECTION_LIMIT > 0 {
 			listener = netutil.LimitListener(
@@ -153,11 +156,13 @@ func (t *tapp) handler(ctx context.Context,
 }
 
 func StopServer() {
-	logging.LOG.Infof("Stop the grpc server...\n")
 	if nil != _grpc {
+		logging.LOG.Infof("Stop the grpc server...\n")
 		_grpc.Stop()
 	}
-	if nil != un_fn && config.GRPC_LB_MODE {
-		un_fn()
+	logging.LOG.Debugf("%v:%v...\n", unregist, config.GRPC_LB_MODE)
+	if nil != unregist && config.GRPC_LB_MODE {
+		logging.LOG.Infof("Call back the unregister func...\n")
+		unregist()
 	}
 }

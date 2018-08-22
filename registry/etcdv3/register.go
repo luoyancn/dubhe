@@ -61,15 +61,15 @@ func generate_etcd_config() etcd.Config {
 	return config
 }
 
-func Register(ndata string, deprecated bool) error {
+func Register(ndata string, deprecated bool, service_name string) error {
 	config := generate_etcd_config()
 	nodeid, _ := uuid.NewV4()
-	key := "/" + schema + "/" + etcdconf.ETCD_SERVICE_NAME + "/" + ndata
+	key := "/" + schema + "/" + service_name + "/" + ndata
 	if deprecated {
 		logging.LOG.Warningf("Register service with deprecated lb mode\n")
 		key = strings.Join(
 			[]string{etcdconf.ETCD_REGISTER_DIR,
-				etcdconf.ETCD_SERVICE_NAME, nodeid.String()}, "/")
+				service_name, nodeid.String()}, "/")
 	}
 	logging.LOG.Infof("Register service with key :%s\n", key)
 

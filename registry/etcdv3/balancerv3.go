@@ -20,12 +20,12 @@ type etcdbuilder struct {
 	cc resolver.ClientConn
 }
 
-func NewResolver() (naming.Resolver, resolver.Builder) {
+func NewResolver(service_name string) (naming.Resolver, resolver.Builder) {
 
-	return &etcdResolver{}, &etcdbuilder{}
+	return &etcdResolver{service_name: service_name}, &etcdbuilder{}
 }
 
-func (r *etcdbuilder) Build(target resolver.Target, cc resolver.ClientConn,
+func (this *etcdbuilder) Build(target resolver.Target, cc resolver.ClientConn,
 	opts resolver.BuildOption) (resolver.Resolver, error) {
 	var err error
 	if cli == nil {
@@ -37,24 +37,24 @@ func (r *etcdbuilder) Build(target resolver.Target, cc resolver.ClientConn,
 			return nil, err
 		}
 	}
-	r.cc = cc
+	this.cc = cc
 	key := "/" + target.Scheme + "/" + target.Endpoint + "/"
 	logging.LOG.Infof("Building the key with %s\n", key)
-	go r.watch(key)
-	return r, nil
+	go this.watch(key)
+	return this, nil
 }
 
-func (r *etcdbuilder) Scheme() string {
+func (this *etcdbuilder) Scheme() string {
 	return schema
 }
 
-func (r *etcdbuilder) ResolveNow(rn resolver.ResolveNowOption) {
+func (this *etcdbuilder) ResolveNow(rn resolver.ResolveNowOption) {
 }
 
-func (r *etcdbuilder) Close() {
+func (this *etcdbuilder) Close() {
 }
 
-func (r *etcdbuilder) watch(keyPrefix string) {
+func (this *etcdbuilder) watch(keyPrefix string) {
 	var addrList []resolver.Address
 
 	getResp, err := cli.Get(context.Background(),
@@ -69,7 +69,7 @@ func (r *etcdbuilder) watch(keyPrefix string) {
 		}
 	}
 
-	r.cc.NewAddress(addrList)
+	this.cc.NewAddress(addrList)
 
 	rch := cli.Watch(context.Background(), keyPrefix, etcd.WithPrefix())
 	for n := range rch {
@@ -80,12 +80,12 @@ func (r *etcdbuilder) watch(keyPrefix string) {
 				if !exist(addrList, addr) {
 					addrList = append(addrList,
 						resolver.Address{Addr: addr})
-					r.cc.NewAddress(addrList)
+					this.cc.NewAddress(addrList)
 				}
 			case mvccpb.DELETE:
 				if s, ok := remove(addrList, addr); ok {
 					addrList = s
-					r.cc.NewAddress(addrList)
+					this.cc.NewAddress(addrList)
 				}
 			}
 		}
