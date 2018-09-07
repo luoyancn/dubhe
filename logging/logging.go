@@ -10,7 +10,7 @@ import (
 
 // Please use this Variable after call the function GetLogger !!!
 // Otherwise ,null pointer exception would be occured
-var LOG *gologging.Logger
+var LOG *gologging.Logger = gologging.MustGetLogger("")
 
 var format_std = gologging.MustStringFormatter(
 	"%{color}%{time:2006-01-02 15:04:05.999}" +
