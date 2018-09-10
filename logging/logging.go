@@ -14,12 +14,12 @@ var LOG *gologging.Logger
 
 var format_std = gologging.MustStringFormatter(
 	"%{color}%{time:2006-01-02 15:04:05.000000}" +
-		" [%{level:-8.8s}] %{shortfile} %{shortfunc}" +
+		" %{level:-8.8s} %{shortfile} %{shortfunc}" +
 		" %{color:reset} %{message}",
 )
 
 var format_file = gologging.MustStringFormatter(
-	"%{time:2006-01-02 15:04:05.000000} [%{level:-8.8s}] [pid:%{pid}] " +
+	"%{time:2006-01-02 15:04:05.000000} %{level:-8.8s} pid:%{pid} " +
 		" [%{shortfile}] [%{shortfunc}] %{message}",
 )
 
