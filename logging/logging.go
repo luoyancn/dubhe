@@ -2,10 +2,12 @@ package logging
 
 import (
 	"os"
-	"path"
 	"sync"
 
 	gologging "github.com/op/go-logging"
+
+	"github.com/luoyancn/dubhe/logging/config"
+	"github.com/luoyancn/dubhe/logging/rotate"
 )
 
 // Please use this Variable after call the function GetLogger !!!
@@ -75,11 +77,20 @@ func GetLogger(logger string, logback int, logpath string, debug bool) {
 }
 
 func get_file_logger(logpath string, logger string) gologging.Backend {
-	logfile, err := os.OpenFile(path.Join(logpath, logger),
-		os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
+	/*
+		logfile, err := os.OpenFile(path.Join(logpath, logger),
+			os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			LOG.Panicf("Cannot create the log file :%v\n", err)
+		}
+	*/
+	logfile, err := rotate.New(logpath, logger)
+	if nil != err {
 		LOG.Panicf("Cannot create the log file :%v\n", err)
 	}
+	logfile.SetKeep(config.LOG_KEEP)
+	logfile.SetMax(config.LOG_MAXSIZE)
+
 	file_backend := gologging.NewLogBackend(logfile, "", 0)
 	file_back_formater := gologging.NewBackendFormatter(
 		file_backend, format_file)

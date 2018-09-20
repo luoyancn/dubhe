@@ -46,6 +46,20 @@ func ReadConfig(conf_path string, logger string, logbak int,
 		c.OverWriteConfig()
 	}
 
+	if viper.IsSet("default.log_path") {
+		logpath = viper.GetString("default.log_path")
+	}
+	if viper.IsSet("default.log_prefix") {
+		logger = viper.GetString("default.log_prefix")
+	}
+	if viper.IsSet("default.log_debug") {
+		debug = viper.GetBool("default.log_debug")
+	}
+
+	if "" != logpath && "" != logger {
+		logbak |= logging.FILE_ENABLED
+	}
+
 	logging.GetLogger(logger, logbak, logpath, debug)
 
 	if verbose {
