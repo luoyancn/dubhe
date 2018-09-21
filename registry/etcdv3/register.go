@@ -74,6 +74,7 @@ func Register(ndata string, deprecated bool, service_name string) error {
 	logging.LOG.Infof("Register service with key :%s\n", key)
 
 	var client *etcd.Client
+	var err error
 	go func() {
 		<-deregister
 		if nil != client {
@@ -83,7 +84,7 @@ func Register(ndata string, deprecated bool, service_name string) error {
 		deregister <- struct{}{}
 	}()
 
-	client, err := etcd.New(config)
+	client, err = etcd.New(config)
 	if err != nil {
 		logging.LOG.Fatalf("Cannot connect to endpoins %v in %d seconds:%v\n",
 			config.Endpoints, config.DialTimeout/time.Second, err)
@@ -140,7 +141,31 @@ func Register(ndata string, deprecated bool, service_name string) error {
 		for range keep {
 		}
 	}()
+
+	ticker := time.NewTicker(etcdconf.ETCD_CHECK_INTERVAL)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				if nil == client {
+					continue
+				}
+				logging.LOG.Debugf("Check the etcd status... \n")
+				_ctx, cancle := context.WithTimeout(
+					context.Background(), etcdconf.ETCD_CONNECTION_TIMEOUT)
+				defer cancle()
+
+				if err = client.Sync(_ctx); nil != err {
+					logging.LOG.Fatalf("Loss the connection of etcd servers, Exiting...\n")
+				}
+			}
+		}
+	}()
+
 	return nil
+}
+
+func keepalive() {
 }
 
 func UnRegister() {

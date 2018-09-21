@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	etcd "github.com/coreos/etcd/clientv3"
-	_ "github.com/coreos/etcd/mvcc/mvccpb"
 	"go.etcd.io/etcd/mvcc/mvccpb"
 	"google.golang.org/grpc/naming"
 	"google.golang.org/grpc/resolver"

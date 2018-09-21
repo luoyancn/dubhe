@@ -14,4 +14,7 @@ var (
 	ETCD_CA_CERT  = "ca.pem"
 	ETCD_CA_FILE  = "cert.pem"
 	ETCD_KEY_FILE = "key.pem"
+
+	ETCD_RETRY_TIME     = 3
+	ETCD_CHECK_INTERVAL = 30 * time.Second
 )

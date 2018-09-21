@@ -33,6 +33,8 @@ func set_etcd() {
 	viper.SetDefault("etcd.ca_cert", "")
 	viper.SetDefault("etcd.ca_file", "")
 	viper.SetDefault("etcd.key_file", "")
+	viper.SetDefault("etcd.retry_time", 3)
+	viper.SetDefault("etcd.check_interval", 30)
 }
 
 func (this *etcdConf) OverWriteConfig() {
@@ -47,5 +49,7 @@ func (this *etcdConf) OverWriteConfig() {
 		ETCD_CA_CERT = viper.GetString("etcd.ca_cert")
 		ETCD_CA_FILE = viper.GetString("etcd.ca_file")
 		ETCD_KEY_FILE = viper.GetString("etcd.key_file")
+		ETCD_RETRY_TIME = viper.GetInt("etcd.retry_time")
+		ETCD_CHECK_INTERVAL = viper.GetDuration("etcd.check_interval") * time.Second
 	})
 }
