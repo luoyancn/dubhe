@@ -27,7 +27,7 @@ func set_default() {
 	//viper.SetDefault("default.log_prefix", "log")
 	viper.SetDefault("default.log_keep", 7)
 	viper.SetDefault("default.log_maxsize", 1024*1024*1024*10)
-	viper.SetDefault("default.log_debug", false)
+	//viper.SetDefault("default.log_debug", false)
 }
 
 func (this *defaultConf) OverWriteConfig() {
