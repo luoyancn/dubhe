@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	maxDefault  = 1024 * 1024 * 1024      // 1GB
-	maximum     = 1024 * 1024 * 1024 * 10 // 10GB
+	maxDefault  = 1024 * 1024 * 1024 // 1GB
+	maximum     = 1024 * 1024 * 1024 // 1GB
 	keepDefault = 10
 	minDefault  = 1024 * 1024 / 100 //10KB, limit the logfile min size
 )
